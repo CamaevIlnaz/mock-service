@@ -1,0 +1,20 @@
+---
+description: Prisma rules
+globs:
+  - "prisma/**/*"
+  - "src/prisma/**/*.ts"
+  - "src/modules/**/*.service.ts"
+alwaysApply: false
+---
+
+# Prisma
+
+Use postgresql and Prisma migrations.
+
+Define models in `prisma/schema.prisma`.
+Use one shared `PrismaService` from `src/prisma/`.
+Never instantiate `PrismaClient` inside domain services.
+
+Prefer `String @id @default(cuid())` IDs.
+Use `createdAt` and `updatedAt` where useful.
+Seed data belongs to Prisma seed files.

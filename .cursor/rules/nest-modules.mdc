@@ -1,0 +1,38 @@
+---
+description: NestJS modules rules
+globs:
+  - "src/modules/**/*.ts"
+alwaysApply: false
+---
+
+Use this structure:
+
+```txt
+prisma/
+  schema.prisma
+  seed.ts
+src/
+  main.ts
+  app.module.ts
+  common/
+  config/
+  prisma/
+  modules/
+```
+
+# NestJS Modules
+
+Each domain lives in `src/modules/<domain>/`.
+
+Standard structure:
+
+- `<domain>.module.ts`
+- `<domain>.controller.ts`
+- `<domain>.service.ts`
+- `dto/create-<domain>.dto.ts`
+- `dto/update-<domain>.dto.ts`
+
+Controllers handle HTTP only.
+Services contain business logic.
+DTO classes validate request input.
+Use NestJS exceptions instead of manual error objects.

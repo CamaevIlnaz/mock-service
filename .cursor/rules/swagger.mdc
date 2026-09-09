@@ -1,0 +1,24 @@
+---
+description: Swagger rules for controllers and DTOs
+globs:
+  - "src/modules/**/*.controller.ts"
+  - "src/modules/**/dto/**/*.ts"
+alwaysApply: false
+---
+
+# Swagger / OpenAPI
+
+When generating or changing controllers, routes, DTOs, or response models, also generate/update Swagger decorators.
+
+Controllers must include:
+
+- `@ApiTags('<domain>')`
+- `@ApiOperation(...)` for each route
+- `@ApiResponse(...)` / `@ApiCreatedResponse(...)` / `@ApiNoContentResponse(...)`
+- `@ApiParam(...)` for route params
+- `@ApiQuery(...)` for query params when used
+- `@ApiBody(...)` when body shape is not obvious from DTO
+
+DTO fields must include `@ApiProperty(...)` or `@ApiPropertyOptional(...)`.
+
+Swagger docs must stay in sync with actual routes, DTO validation, params, query, status codes, and response shape.

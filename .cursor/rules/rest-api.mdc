@@ -1,0 +1,23 @@
+---
+description: REST API rules
+globs:
+  - "src/modules/**/*.controller.ts"
+  - "src/modules/**/dto/**/*.ts"
+alwaysApply: false
+---
+
+# REST API
+
+Use REST by default.
+
+Use plural resource routes:
+
+- `GET /habits`
+- `GET /habits/:id`
+- `POST /habits`
+- `PATCH /habits/:id`
+- `DELETE /habits/:id`
+
+POST, PUT and PATCH must use DTO validation.
+Do not return raw database errors.
+Do not introduce GraphQL or API versioning unless requested.

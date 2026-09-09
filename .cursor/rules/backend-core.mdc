@@ -1,0 +1,19 @@
+---
+description: LiveOS backend core rules
+globs:
+  - "src/**/*"
+  - "prisma/**/*"
+alwaysApply: false
+---
+
+# Backend Core
+
+Stack: NestJS, TypeScript, Prisma ORM, Postgresql, Yarn.
+
+Use simple NestJS modular architecture:
+
+Controller → Service → PrismaService
+
+Do not use Clean Architecture, CQRS, repository layer, event bus, microservices, TypeORM, Sequelize, npm, pnpm, bun.
+
+Generate only what was requested. Do not create base services, base controllers, abstract modules, or future-proof infrastructure.

@@ -1,0 +1,20 @@
+---
+description: App setup rules
+globs:
+  - "src/main.ts"
+  - "src/app.module.ts"
+  - "src/config/**/*.ts"
+alwaysApply: false
+---
+
+# App Setup
+
+Use global `ValidationPipe` with:
+
+- `whitelist: true`
+- `forbidNonWhitelisted: true`
+- `transform: true`
+
+Use `@nestjs/config` for env config.
+Use Swagger setup only in app bootstrap/config files.
+Use Yarn scripts only.

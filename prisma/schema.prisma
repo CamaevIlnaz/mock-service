@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  login        String       @unique
+  passwordHash String       @map("password_hash")
+  firstName    String       @map("first_name")
+  lastName     String       @map("last_name")
+  avatarPath   String?      @map("avatar_path")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  mockServers  MockServer[]
+
+  @@map("users")
+}
+
+model Stand {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  name        String
+  domain      String
+  basePath    String       @map("base_path")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  mockServers MockServer[]
+
+  @@map("stands")
+}
+
+model MockServer {
+  id              String   @id @default(cuid())
+  name            String
+  sortOrder       Int      @default(0) @map("sort_order")
+  standCode       String   @map("stand_code")
+  userId          String   @map("user_id")
+  connectionToken String   @unique @map("connection_token")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  stand Stand @relation(fields: [standCode], references: [code], onDelete: Restrict)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, sortOrder])
+  @@map("mock_servers")
+}
