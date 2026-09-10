@@ -6,11 +6,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { Role } from '@prisma/client';
 import type { FastifyRequest } from 'fastify';
 
 export type JwtPayload = {
   sub: string;
   login: string;
+  role: Role;
 };
 
 export type AuthenticatedRequest = FastifyRequest & {

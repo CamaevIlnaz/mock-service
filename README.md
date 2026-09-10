@@ -91,6 +91,8 @@ yarn start:dev
 
 Фронтенд должен вызывать API с `credentials: 'include'` и обрабатывать 401. Токен в JSON не отдаётся.
 
+Роли: `user` (по умолчанию при регистрации) и `admin` (назначается вручную в БД: `UPDATE users SET role = 'admin' WHERE login = '...'`). В ответах auth/me поле `role`.
+
 CORS: `CORS_ORIGIN` + `credentials: true`.
 
 ## Стенды

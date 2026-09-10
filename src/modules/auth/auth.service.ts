@@ -115,6 +115,7 @@ export class AuthService {
       login: user.login,
       firstName: user.firstName,
       lastName: user.lastName,
+      role: user.role,
       avatarUrl: toAvatarUrl(user.avatarPath),
     };
   }
@@ -133,6 +134,7 @@ export class AuthService {
     const token = await this.jwtService.signAsync({
       sub: user.id,
       login: user.login,
+      role: user.role,
     });
 
     reply.setCookie(cookieName, token, {
