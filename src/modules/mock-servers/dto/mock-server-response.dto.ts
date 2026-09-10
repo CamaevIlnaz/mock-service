@@ -21,12 +21,6 @@ export class MockServerResponseDto {
   })
   connectionToken!: string;
 
-  @ApiProperty({
-    example:
-      '/mockapi/a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456',
-  })
-  connectionPath!: string;
-
   @ApiProperty({ example: '2026-09-09T12:00:00.000Z' })
   createdAt!: Date;
 

@@ -115,7 +115,7 @@ CORS: `CORS_ORIGIN` + `credentials: true`.
 - `PATCH /api/mock-servers/:id` — обновить
 - `DELETE /api/mock-servers/:id` — удалить
 
-При создании генерируется `connectionToken`. В каждом ответе CRUD сразу отдаются `connectionToken` и `connectionPath` вида `/mockapi/{connectionToken}`.
+При создании генерируется `connectionToken`. В каждом ответе CRUD отдаётся `connectionToken`.
 
 Имя по умолчанию: `Мок сервер #n` (номер среди серверов пользователя).
 

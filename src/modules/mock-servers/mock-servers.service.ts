@@ -125,7 +125,6 @@ export class MockServersService {
       standCode: server.standCode,
       userId: server.userId,
       connectionToken: server.connectionToken,
-      connectionPath: `/mockapi/${server.connectionToken}`,
       createdAt: server.createdAt,
       updatedAt: server.updatedAt,
     };
