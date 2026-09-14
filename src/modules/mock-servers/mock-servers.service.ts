@@ -3,8 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { MockServer } from '@prisma/client';
 import { randomBytes } from 'node:crypto';
+import { removeMockServerResponseDir } from '../../common/utils/mock-response-storage';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateMockServerDto } from './dto/create-mock-server.dto';
 import { MockServerResponseDto } from './dto/mock-server-response.dto';
@@ -12,7 +14,10 @@ import { UpdateMockServerDto } from './dto/update-mock-server.dto';
 
 @Injectable()
 export class MockServersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async findAll(userId: string): Promise<MockServerResponseDto[]> {
     const servers = await this.prisma.mockServer.findMany({
@@ -88,12 +93,15 @@ export class MockServersService {
   async remove(userId: string, id: string): Promise<void> {
     await this.findOwnedOrFail(userId, id);
     await this.prisma.mockServer.delete({ where: { id } });
+
+    const uploadsDir = this.configService.get<string>(
+      'app.uploadsDir',
+      'uploads',
+    );
+    await removeMockServerResponseDir(uploadsDir, id);
   }
 
-  private async findOwnedOrFail(
-    userId: string,
-    id: string,
-  ): Promise<MockServer> {
+  async findOwnedOrFail(userId: string, id: string): Promise<MockServer> {
     const server = await this.prisma.mockServer.findFirst({
       where: { id, userId },
     });

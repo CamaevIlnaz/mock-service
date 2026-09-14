@@ -7,5 +7,6 @@ import { MockServersService } from './mock-servers.service';
   imports: [AuthModule],
   controllers: [MockServersController],
   providers: [MockServersService],
+  exports: [MockServersService],
 })
 export class MockServersModule {}

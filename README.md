@@ -2,7 +2,7 @@
 
 Backend-сервис для приёма запросов от frontend-приложений, возврата настроенных mock-ответов и проксирования на выбранные стенды.
 
-На текущем этапе: NestJS + Fastify, PostgreSQL, Prisma, health-check, Swagger, пользователи и JWT-авторизация через httpOnly cookie, CRUD стендов и мок-серверов.
+На текущем этапе: NestJS + Fastify, PostgreSQL, Prisma, health-check, Swagger, пользователи и JWT-авторизация через httpOnly cookie, CRUD стендов, мок-серверов, правил мокирования и файлов ответов.
 
 ## Стек
 
@@ -29,12 +29,14 @@ src/
     users/         # загрузка аватара
     stands/        # справочник стендов
     mock-servers/  # персональные мок-серверы
+    mock-rules/    # правила мокирования
+    mock-response-files/ # файлы ответов мок-сервера
   prisma/          # PrismaModule / PrismaService
   app.module.ts
   main.ts
 prisma/
   schema.prisma
-uploads/           # загруженные аватары (локально)
+uploads/           # аватары и файлы ответов (локально)
 docker-compose.yml
 ```
 
@@ -78,8 +80,10 @@ yarn start:dev
 - Auth: http://localhost:3000/api/auth
 - Stands: http://localhost:3000/api/stands
 - Mock servers: http://localhost:3000/api/mock-servers
+- Mock rules: http://localhost:3000/api/mock-servers/:mockServerId/rules
+- Response files: http://localhost:3000/api/mock-servers/:mockServerId/response-files
 - Swagger: http://localhost:3000/docs
-- Uploads: http://localhost:3000/uploads/...
+- Uploads (avatars): http://localhost:3000/uploads/...
 
 ## Авторизация
 
@@ -118,6 +122,36 @@ CORS: `CORS_ORIGIN` + `credentials: true`.
 При создании генерируется `connectionToken`. В каждом ответе CRUD отдаётся `connectionToken`.
 
 Имя по умолчанию: `Мок сервер #n` (номер среди серверов пользователя).
+
+При удалении мок-сервера каскадно удаляются его правила и записи файлов; физическая папка `uploads/mock-responses/{mockServerId}` удаляется сервисом.
+
+## Правила мокирования
+
+Правила принадлежат мок-серверу текущего пользователя:
+
+- `GET /api/mock-servers/:mockServerId/rules` — список (по `priority` asc; меньший приоритет выше)
+- `GET /api/mock-servers/:mockServerId/rules/:id` — одно правило
+- `POST /api/mock-servers/:mockServerId/rules` — создать
+- `PATCH /api/mock-servers/:mockServerId/rules/:id` — обновить
+- `DELETE /api/mock-servers/:mockServerId/rules/:id` — удалить правило (файл ответа не удаляется)
+- `POST /api/mock-servers/:mockServerId/rules/:id/copy` — копировать правило (`{ "targetMockServerId": "..." }`)
+
+Типы ответа:
+
+- `INLINE_JSON` — JSON body (`application/json`) с полем `responseBody`
+- `FILE` — либо JSON с `responseFileId` существующего файла того же мок-сервера, либо `multipart/form-data` с полями `data` (JSON настроек) и `file` (новый файл)
+
+Новый файл создаётся только вместе с сохранением правила. Физический путь: `uploads/mock-responses/{mockServerId}/{fileId}.{ext}` (имя на диске не из `originalName`).
+
+При копировании внутри одного мок-сервера файл переиспользуется; при копировании на другой сервер создаётся независимая копия файла.
+
+## Файлы ответов
+
+- `GET /api/mock-servers/:mockServerId/response-files` — список файлов сервера
+- `GET /api/mock-servers/:mockServerId/response-files/:fileId/content` — скачать (JWT + ownership; не публичный `/uploads`)
+- `DELETE /api/mock-servers/:mockServerId/response-files/:fileId` — удалить; `409`, если файл используется правилами
+
+Один файл может использоваться несколькими правилами одного мок-сервера.
 
 ## Путь `/mockapi` (зарезервирован)
 

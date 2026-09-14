@@ -37,6 +37,7 @@ async function bootstrap() {
   );
 
   await mkdir(join(uploadsDir, 'avatars'), { recursive: true });
+  await mkdir(join(uploadsDir, 'mock-responses'), { recursive: true });
 
   await app.register(cookie);
   await app.register(multipart, {

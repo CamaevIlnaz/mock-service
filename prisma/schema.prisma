@@ -12,6 +12,19 @@ enum Role {
   user
 }
 
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+}
+
+enum MockResponseType {
+  INLINE_JSON
+  FILE
+}
+
 model User {
   id           String       @id @default(cuid())
   login        String       @unique
@@ -50,10 +63,53 @@ model MockServer {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  stand Stand @relation(fields: [standCode], references: [code], onDelete: Restrict)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stand         Stand              @relation(fields: [standCode], references: [code], onDelete: Restrict)
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rules         MockRule[]
+  responseFiles MockResponseFile[]
 
   @@index([userId])
   @@index([userId, sortOrder])
   @@map("mock_servers")
+}
+
+model MockRule {
+  id              String           @id @default(cuid())
+  mockServerId    String           @map("mock_server_id")
+  name            String
+  method          HttpMethod
+  urlMask         String           @map("url_mask") @db.VarChar(1000)
+  isEnabled       Boolean          @default(true) @map("is_enabled")
+  priority        Int              @default(0)
+  statusCode      Int              @default(200) @map("status_code")
+  delayMs         Int              @default(0) @map("delay_ms")
+  responseType    MockResponseType @default(INLINE_JSON) @map("response_type")
+  responseBody    Json?            @map("response_body")
+  responseFileId  String?          @map("response_file_id")
+  responseHeaders Json?            @map("response_headers")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  mockServer   MockServer         @relation(fields: [mockServerId], references: [id], onDelete: Cascade)
+  responseFile MockResponseFile?  @relation(fields: [responseFileId], references: [id], onDelete: SetNull)
+
+  @@index([mockServerId, priority])
+  @@index([responseFileId])
+  @@map("mock_rules")
+}
+
+model MockResponseFile {
+  id           String   @id @default(cuid())
+  mockServerId String   @map("mock_server_id")
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  sizeBytes    Int      @map("size_bytes")
+  storagePath  String   @map("storage_path")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  mockServer MockServer @relation(fields: [mockServerId], references: [id], onDelete: Cascade)
+  rules      MockRule[]
+
+  @@index([mockServerId])
+  @@map("mock_response_files")
 }

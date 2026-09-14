@@ -10,3 +10,14 @@ export {
   toAvatarUrl,
 } from './utils/avatar-storage';
 export type { AvatarUpload } from './utils/avatar-storage';
+export {
+  assertMockResponseUpload,
+  buildMockResponseStoragePath,
+  copyMockResponseFile,
+  extensionForMimeType,
+  readMockResponseFile,
+  removeMockResponseFile,
+  removeMockServerResponseDir,
+  saveMockResponseFile,
+} from './utils/mock-response-storage';
+export type { MockResponseUpload } from './utils/mock-response-storage';
