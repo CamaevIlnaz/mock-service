@@ -30,10 +30,4 @@ export class RegisterDto {
   @IsNotEmpty()
   @MaxLength(100)
   firstName!: string;
-
-  @ApiProperty({ example: 'Иванов' })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  lastName!: string;
 }

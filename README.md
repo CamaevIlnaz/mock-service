@@ -87,7 +87,7 @@ yarn start:dev
 
 ## Авторизация
 
-- `POST /api/auth/register` — multipart (`login`, `password`, `firstName`, `lastName`, опционально `avatar`); выставляет httpOnly cookie
+- `POST /api/auth/register` — multipart (`login`, `password`, `firstName`, опционально `avatar`); выставляет httpOnly cookie
 - `POST /api/auth/login` — JSON `{ login, password }`; выставляет cookie
 - `POST /api/auth/logout` — очищает cookie
 - `GET /api/auth/me` — текущий пользователь (по cookie)

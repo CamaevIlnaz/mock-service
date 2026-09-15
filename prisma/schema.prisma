@@ -30,7 +30,6 @@ model User {
   login        String       @unique
   passwordHash String       @map("password_hash")
   firstName    String       @map("first_name")
-  lastName     String       @map("last_name")
   role         Role         @default(user)
   avatarPath   String?      @map("avatar_path")
   createdAt    DateTime     @default(now()) @map("created_at")

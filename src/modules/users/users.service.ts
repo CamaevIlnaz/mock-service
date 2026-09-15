@@ -44,7 +44,6 @@ export class UsersService {
       id: updated.id,
       login: updated.login,
       firstName: updated.firstName,
-      lastName: updated.lastName,
       role: updated.role,
       avatarUrl: toAvatarUrl(updated.avatarPath),
     };

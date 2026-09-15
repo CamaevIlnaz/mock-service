@@ -45,7 +45,6 @@ export class AuthService {
         login: dto.login,
         passwordHash,
         firstName: dto.firstName,
-        lastName: dto.lastName,
       },
     });
 
@@ -114,7 +113,6 @@ export class AuthService {
       id: user.id,
       login: user.login,
       firstName: user.firstName,
-      lastName: user.lastName,
       role: user.role,
       avatarUrl: toAvatarUrl(user.avatarPath),
     };
