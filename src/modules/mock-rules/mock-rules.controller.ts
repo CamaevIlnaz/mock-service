@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -39,14 +40,16 @@ import {
 import type { MockResponseUpload } from '../../common/utils/mock-response-storage';
 import { CopyMockRuleDto } from './dto/copy-mock-rule.dto';
 import { CreateMockRuleDto } from './dto/create-mock-rule.dto';
+import { ListMockRulesQueryDto } from './dto/list-mock-rules-query.dto';
 import { MockRuleResponseDto } from './dto/mock-rule-response.dto';
+import { PaginatedMockRulesResponseDto } from './dto/paginated-mock-rules-response.dto';
 import { UpdateMockRuleDto } from './dto/update-mock-rule.dto';
 import { MockRulesService } from './mock-rules.service';
 
 @ApiTags('mock-rules')
 @ApiCookieAuth()
 @UseGuards(JwtAuthGuard)
-@ApiExtraModels(CreateMockRuleDto, UpdateMockRuleDto)
+@ApiExtraModels(CreateMockRuleDto, UpdateMockRuleDto, PaginatedMockRulesResponseDto)
 @Controller('mock-servers/:mockServerId/rules')
 export class MockRulesController {
   constructor(private readonly mockRulesService: MockRulesService) {}
@@ -58,14 +61,16 @@ export class MockRulesController {
     description: 'ID мок-сервера',
     type: Number,
   })
-  @ApiOkResponse({ type: MockRuleResponseDto, isArray: true })
+  @ApiOkResponse({ type: PaginatedMockRulesResponseDto })
+  @ApiBadRequestResponse({ description: 'Некорректные параметры пагинации' })
   @ApiNotFoundResponse({ description: 'Мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   findAll(
     @CurrentUser() user: JwtPayload,
     @Param('mockServerId', ParseIntPipe) mockServerId: number,
-  ): Promise<MockRuleResponseDto[]> {
-    return this.mockRulesService.findAll(user.sub, mockServerId);
+    @Query() query: ListMockRulesQueryDto,
+  ): Promise<PaginatedMockRulesResponseDto> {
+    return this.mockRulesService.findAll(user.sub, mockServerId, query);
   }
 
   @Get(':id')

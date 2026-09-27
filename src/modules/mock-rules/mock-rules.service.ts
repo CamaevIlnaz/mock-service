@@ -20,7 +20,9 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { MockServersService } from '../mock-servers/mock-servers.service';
 import { MockResponseFileMetaDto } from '../mock-response-files/dto/mock-response-file-meta.dto';
 import { CreateMockRuleDto } from './dto/create-mock-rule.dto';
+import { ListMockRulesQueryDto } from './dto/list-mock-rules-query.dto';
 import { MockRuleResponseDto } from './dto/mock-rule-response.dto';
+import { PaginatedMockRulesResponseDto } from './dto/paginated-mock-rules-response.dto';
 import { UpdateMockRuleDto } from './dto/update-mock-rule.dto';
 
 type RuleWithFile = MockRule & {
@@ -38,16 +40,32 @@ export class MockRulesService {
   async findAll(
     userId: number,
     mockServerId: number,
-  ): Promise<MockRuleResponseDto[]> {
+    query: ListMockRulesQueryDto,
+  ): Promise<PaginatedMockRulesResponseDto> {
     await this.mockServersService.findOwnedOrFail(userId, mockServerId);
 
-    const rules = await this.prisma.mockRule.findMany({
-      where: { mockServerId },
-      include: { responseFile: true },
-      orderBy: { priority: 'asc' },
-    });
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const where = { mockServerId };
 
-    return rules.map((rule) => this.toResponse(rule));
+    const [total, rules] = await this.prisma.$transaction([
+      this.prisma.mockRule.count({ where }),
+      this.prisma.mockRule.findMany({
+        where,
+        include: { responseFile: true },
+        orderBy: { priority: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
+
+    return {
+      items: rules.map((rule) => this.toResponse(rule)),
+      total,
+      page,
+      limit,
+      totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+    };
   }
 
   async findOne(
