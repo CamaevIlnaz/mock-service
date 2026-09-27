@@ -1,6 +1,26 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { HttpMethod } from '@prisma/client';
+import { Transform, Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
+
+function toBoolean(value: unknown): unknown {
+  if (value === 'true' || value === true) {
+    return true;
+  }
+  if (value === 'false' || value === false) {
+    return false;
+  }
+  return value;
+}
 
 export class ListMockRulesQueryDto {
   @ApiPropertyOptional({
@@ -28,4 +48,31 @@ export class ListMockRulesQueryDto {
   @Min(1)
   @Max(100)
   limit?: number = 20;
+
+  @ApiPropertyOptional({
+    example: 'products',
+    description: 'Поиск по названию и URL-маске',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  search?: string;
+
+  @ApiPropertyOptional({
+    enum: HttpMethod,
+    example: HttpMethod.GET,
+    description: 'Фильтр по HTTP-методу',
+  })
+  @IsOptional()
+  @IsEnum(HttpMethod)
+  method?: HttpMethod;
+
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Фильтр по состоянию правила (включено / выключено)',
+  })
+  @IsOptional()
+  @Transform(({ value }) => toBoolean(value))
+  @IsBoolean()
+  isEnabled?: boolean;
 }

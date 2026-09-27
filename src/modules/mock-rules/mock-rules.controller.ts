@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiBody,
   ApiConsumes,
   ApiCookieAuth,
   ApiCreatedResponse,
@@ -28,6 +27,7 @@ import {
   ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -55,14 +55,18 @@ export class MockRulesController {
   constructor(private readonly mockRulesService: MockRulesService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Список правил мокирования мок-сервера' })
+  @ApiOperation({
+    summary: 'Список правил мокирования мок-сервера',
+    description:
+      'Пагинация, поиск по названию/URL, фильтры по method и isEnabled. Сортировка по priority asc.',
+  })
   @ApiParam({
     name: 'mockServerId',
     description: 'ID мок-сервера',
     type: Number,
   })
   @ApiOkResponse({ type: PaginatedMockRulesResponseDto })
-  @ApiBadRequestResponse({ description: 'Некорректные параметры пагинации' })
+  @ApiBadRequestResponse({ description: 'Некорректные query-параметры' })
   @ApiNotFoundResponse({ description: 'Мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   findAll(
@@ -97,6 +101,26 @@ export class MockRulesController {
     summary: 'Создать правило мокирования',
     description:
       'JSON для INLINE_JSON или FILE с существующим responseFileId; multipart (data+file) для нового файла',
+    requestBody: {
+      required: true,
+      description:
+        'application/json — CreateMockRuleDto; multipart — поле data (JSON) и опционально file',
+      content: {
+        'application/json': {
+          schema: { $ref: getSchemaPath(CreateMockRuleDto) },
+        },
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            required: ['data'],
+            properties: {
+              data: { type: 'string', description: 'JSON CreateMockRuleDto' },
+              file: { type: 'string', format: 'binary' },
+            },
+          },
+        },
+      },
+    },
   })
   @ApiParam({
     name: 'mockServerId',
@@ -104,23 +128,6 @@ export class MockRulesController {
     type: Number,
   })
   @ApiConsumes('application/json', 'multipart/form-data')
-  @ApiBody({
-    description:
-      'application/json — CreateMockRuleDto; multipart — поле data (JSON) и опционально file',
-    schema: {
-      oneOf: [
-        { $ref: '#/components/schemas/CreateMockRuleDto' },
-        {
-          type: 'object',
-          required: ['data'],
-          properties: {
-            data: { type: 'string', description: 'JSON CreateMockRuleDto' },
-            file: { type: 'string', format: 'binary' },
-          },
-        },
-      ],
-    },
-  })
   @ApiCreatedResponse({ type: MockRuleResponseDto })
   @ApiBadRequestResponse({ description: 'Некорректные данные' })
   @ApiNotFoundResponse({ description: 'Мок-сервер не найден' })
@@ -142,6 +149,26 @@ export class MockRulesController {
     summary: 'Обновить правило мокирования',
     description:
       'JSON или multipart (data+file) при загрузке нового файла ответа',
+    requestBody: {
+      required: true,
+      description:
+        'application/json — UpdateMockRuleDto; multipart — поле data (JSON) и опционально file',
+      content: {
+        'application/json': {
+          schema: { $ref: getSchemaPath(UpdateMockRuleDto) },
+        },
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            required: ['data'],
+            properties: {
+              data: { type: 'string', description: 'JSON UpdateMockRuleDto' },
+              file: { type: 'string', format: 'binary' },
+            },
+          },
+        },
+      },
+    },
   })
   @ApiParam({
     name: 'mockServerId',
@@ -150,21 +177,6 @@ export class MockRulesController {
   })
   @ApiParam({ name: 'id', description: 'ID правила', type: Number })
   @ApiConsumes('application/json', 'multipart/form-data')
-  @ApiBody({
-    schema: {
-      oneOf: [
-        { $ref: '#/components/schemas/UpdateMockRuleDto' },
-        {
-          type: 'object',
-          required: ['data'],
-          properties: {
-            data: { type: 'string', description: 'JSON UpdateMockRuleDto' },
-            file: { type: 'string', format: 'binary' },
-          },
-        },
-      ],
-    },
-  })
   @ApiOkResponse({ type: MockRuleResponseDto })
   @ApiBadRequestResponse({ description: 'Некорректные данные' })
   @ApiNotFoundResponse({ description: 'Правило или мок-сервер не найден' })

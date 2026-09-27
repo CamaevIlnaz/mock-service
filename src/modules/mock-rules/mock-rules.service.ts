@@ -46,7 +46,7 @@ export class MockRulesService {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const where = { mockServerId };
+    const where = this.buildListWhere(mockServerId, query);
 
     const [total, rules] = await this.prisma.$transaction([
       this.prisma.mockRule.count({ where }),
@@ -66,6 +66,31 @@ export class MockRulesService {
       limit,
       totalPages: total === 0 ? 0 : Math.ceil(total / limit),
     };
+  }
+
+  private buildListWhere(
+    mockServerId: number,
+    query: ListMockRulesQueryDto,
+  ): Prisma.MockRuleWhereInput {
+    const where: Prisma.MockRuleWhereInput = { mockServerId };
+
+    const search = query.search?.trim();
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { urlMask: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (query.method !== undefined) {
+      where.method = query.method;
+    }
+
+    if (query.isEnabled !== undefined) {
+      where.isEnabled = query.isEnabled;
+    }
+
+    return where;
   }
 
   async findOne(
