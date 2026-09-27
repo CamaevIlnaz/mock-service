@@ -69,28 +69,29 @@ export function assertMockResponseUpload(
 }
 
 export function buildMockResponseStoragePath(
-  mockServerId: string,
-  fileId: string,
+  mockServerId: number,
+  storageKey: string,
   mimeType: string,
 ): string {
   const ext = extensionForMimeType(mimeType);
-  return join('mock-responses', mockServerId, `${fileId}.${ext}`).replace(
-    /\\/g,
-    '/',
-  );
+  return join(
+    'mock-responses',
+    String(mockServerId),
+    `${storageKey}.${ext}`,
+  ).replace(/\\/g, '/');
 }
 
 export async function saveMockResponseFile(
   uploadsDir: string,
-  mockServerId: string,
+  mockServerId: number,
   file: MockResponseUpload,
-  fileId: string = randomUUID().replace(/-/g, ''),
-): Promise<{ fileId: string; storagePath: string; sizeBytes: number }> {
+  storageKey: string = randomUUID().replace(/-/g, ''),
+): Promise<{ storageKey: string; storagePath: string; sizeBytes: number }> {
   assertMockResponseUpload(file);
 
   const storagePath = buildMockResponseStoragePath(
     mockServerId,
-    fileId,
+    storageKey,
     file.mimetype,
   );
   const absolutePath = join(uploadsDir, storagePath);
@@ -99,7 +100,7 @@ export async function saveMockResponseFile(
   await writeFile(absolutePath, file.buffer);
 
   return {
-    fileId,
+    storageKey,
     storagePath,
     sizeBytes: file.buffer.byteLength,
   };
@@ -108,13 +109,13 @@ export async function saveMockResponseFile(
 export async function copyMockResponseFile(
   uploadsDir: string,
   sourceStoragePath: string,
-  targetMockServerId: string,
+  targetMockServerId: number,
   mimeType: string,
-  fileId: string = randomUUID().replace(/-/g, ''),
-): Promise<{ fileId: string; storagePath: string }> {
+  storageKey: string = randomUUID().replace(/-/g, ''),
+): Promise<{ storageKey: string; storagePath: string }> {
   const storagePath = buildMockResponseStoragePath(
     targetMockServerId,
-    fileId,
+    storageKey,
     mimeType,
   );
   const sourceAbsolute = join(uploadsDir, sourceStoragePath);
@@ -123,7 +124,7 @@ export async function copyMockResponseFile(
   await mkdir(dirname(targetAbsolute), { recursive: true });
   await copyFile(sourceAbsolute, targetAbsolute);
 
-  return { fileId, storagePath };
+  return { storageKey, storagePath };
 }
 
 export async function readMockResponseFile(
@@ -150,9 +151,13 @@ export async function removeMockResponseFile(
 
 export async function removeMockServerResponseDir(
   uploadsDir: string,
-  mockServerId: string,
+  mockServerId: number,
 ): Promise<void> {
-  const absoluteDir = join(uploadsDir, 'mock-responses', mockServerId);
+  const absoluteDir = join(
+    uploadsDir,
+    'mock-responses',
+    String(mockServerId),
+  );
 
   try {
     await rm(absoluteDir, { recursive: true, force: true });

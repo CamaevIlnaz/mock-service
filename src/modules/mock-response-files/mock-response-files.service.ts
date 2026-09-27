@@ -24,8 +24,8 @@ export class MockResponseFilesService {
   ) {}
 
   async findAll(
-    userId: string,
-    mockServerId: string,
+    userId: number,
+    mockServerId: number,
   ): Promise<MockResponseFileMetaDto[]> {
     await this.mockServersService.findOwnedOrFail(userId, mockServerId);
 
@@ -44,9 +44,9 @@ export class MockResponseFilesService {
   }
 
   async getContent(
-    userId: string,
-    mockServerId: string,
-    fileId: string,
+    userId: number,
+    mockServerId: number,
+    fileId: number,
   ): Promise<{
     stream: StreamableFile;
     mimeType: string;
@@ -77,9 +77,9 @@ export class MockResponseFilesService {
   }
 
   async remove(
-    userId: string,
-    mockServerId: string,
-    fileId: string,
+    userId: number,
+    mockServerId: number,
+    fileId: number,
   ): Promise<void> {
     const file = await this.findOwnedFileOrFail(userId, mockServerId, fileId);
 
@@ -106,9 +106,9 @@ export class MockResponseFilesService {
   }
 
   private async findOwnedFileOrFail(
-    userId: string,
-    mockServerId: string,
-    fileId: string,
+    userId: number,
+    mockServerId: number,
+    fileId: number,
   ) {
     await this.mockServersService.findOwnedOrFail(userId, mockServerId);
 

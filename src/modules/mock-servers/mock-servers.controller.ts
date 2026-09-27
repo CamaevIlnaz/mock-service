@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -49,13 +50,13 @@ export class MockServersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Получить мок-сервер по id' })
-  @ApiParam({ name: 'id', description: 'ID мок-сервера' })
+  @ApiParam({ name: 'id', description: 'ID мок-сервера', type: Number })
   @ApiOkResponse({ type: MockServerResponseDto })
   @ApiNotFoundResponse({ description: 'Мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   findOne(
     @CurrentUser() user: JwtPayload,
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<MockServerResponseDto> {
     return this.mockServersService.findOne(user.sub, id);
   }
@@ -74,14 +75,14 @@ export class MockServersController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Обновить мок-сервер' })
-  @ApiParam({ name: 'id', description: 'ID мок-сервера' })
+  @ApiParam({ name: 'id', description: 'ID мок-сервера', type: Number })
   @ApiOkResponse({ type: MockServerResponseDto })
   @ApiNotFoundResponse({ description: 'Мок-сервер не найден' })
   @ApiBadRequestResponse({ description: 'Стенд с таким code не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   update(
     @CurrentUser() user: JwtPayload,
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateMockServerDto,
   ): Promise<MockServerResponseDto> {
     return this.mockServersService.update(user.sub, id, dto);
@@ -90,13 +91,13 @@ export class MockServersController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Удалить мок-сервер' })
-  @ApiParam({ name: 'id', description: 'ID мок-сервера' })
+  @ApiParam({ name: 'id', description: 'ID мок-сервера', type: Number })
   @ApiNoContentResponse({ description: 'Мок-сервер удалён' })
   @ApiNotFoundResponse({ description: 'Мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   async remove(
     @CurrentUser() user: JwtPayload,
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<void> {
     await this.mockServersService.remove(user.sub, id);
   }

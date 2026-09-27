@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class MockResponseFileMetaDto {
-  @ApiProperty({ example: 'clfile123' })
-  id!: string;
+  @ApiProperty({ example: 1 })
+  id!: number;
 
   @ApiProperty({ example: 'products.json' })
   originalName!: string;

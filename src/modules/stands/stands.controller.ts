@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -45,11 +46,11 @@ export class StandsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Получить стенд по id' })
-  @ApiParam({ name: 'id', description: 'ID стенда' })
+  @ApiParam({ name: 'id', description: 'ID стенда', type: Number })
   @ApiOkResponse({ type: StandResponseDto })
   @ApiNotFoundResponse({ description: 'Стенд не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
-  findOne(@Param('id') id: string): Promise<StandResponseDto> {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<StandResponseDto> {
     return this.standsService.findOne(id);
   }
 
@@ -64,13 +65,13 @@ export class StandsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Обновить стенд' })
-  @ApiParam({ name: 'id', description: 'ID стенда' })
+  @ApiParam({ name: 'id', description: 'ID стенда', type: Number })
   @ApiOkResponse({ type: StandResponseDto })
   @ApiNotFoundResponse({ description: 'Стенд не найден' })
   @ApiConflictResponse({ description: 'Стенд с таким code уже существует' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateStandDto,
   ): Promise<StandResponseDto> {
     return this.standsService.update(id, dto);
@@ -79,14 +80,14 @@ export class StandsController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Удалить стенд' })
-  @ApiParam({ name: 'id', description: 'ID стенда' })
+  @ApiParam({ name: 'id', description: 'ID стенда', type: Number })
   @ApiNoContentResponse({ description: 'Стенд удалён' })
   @ApiNotFoundResponse({ description: 'Стенд не найден' })
   @ApiConflictResponse({
     description: 'Нельзя удалить стенд: к нему привязаны мок-серверы',
   })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     await this.standsService.remove(id);
   }
 }

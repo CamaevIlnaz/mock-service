@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Res,
   StreamableFile,
   UseGuards,
@@ -43,13 +44,17 @@ export class MockResponseFilesController {
   @ApiOperation({
     summary: 'Список файлов ответов мок-сервера',
   })
-  @ApiParam({ name: 'mockServerId', description: 'ID мок-сервера' })
+  @ApiParam({
+    name: 'mockServerId',
+    description: 'ID мок-сервера',
+    type: Number,
+  })
   @ApiOkResponse({ type: MockResponseFileMetaDto, isArray: true })
   @ApiNotFoundResponse({ description: 'Мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   findAll(
     @CurrentUser() user: JwtPayload,
-    @Param('mockServerId') mockServerId: string,
+    @Param('mockServerId', ParseIntPipe) mockServerId: number,
   ): Promise<MockResponseFileMetaDto[]> {
     return this.mockResponseFilesService.findAll(user.sub, mockServerId);
   }
@@ -58,16 +63,20 @@ export class MockResponseFilesController {
   @ApiOperation({
     summary: 'Скачать содержимое файла ответа (JWT + ownership)',
   })
-  @ApiParam({ name: 'mockServerId', description: 'ID мок-сервера' })
-  @ApiParam({ name: 'fileId', description: 'ID файла' })
+  @ApiParam({
+    name: 'mockServerId',
+    description: 'ID мок-сервера',
+    type: Number,
+  })
+  @ApiParam({ name: 'fileId', description: 'ID файла', type: Number })
   @ApiProduces('application/octet-stream')
   @ApiOkResponse({ description: 'Содержимое файла' })
   @ApiNotFoundResponse({ description: 'Файл или мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   async getContent(
     @CurrentUser() user: JwtPayload,
-    @Param('mockServerId') mockServerId: string,
-    @Param('fileId') fileId: string,
+    @Param('mockServerId', ParseIntPipe) mockServerId: number,
+    @Param('fileId', ParseIntPipe) fileId: number,
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<StreamableFile> {
     const { stream, mimeType, originalName } =
@@ -91,8 +100,12 @@ export class MockResponseFilesController {
   @ApiOperation({
     summary: 'Удалить файл ответа (запрещено, если используется правилами)',
   })
-  @ApiParam({ name: 'mockServerId', description: 'ID мок-сервера' })
-  @ApiParam({ name: 'fileId', description: 'ID файла' })
+  @ApiParam({
+    name: 'mockServerId',
+    description: 'ID мок-сервера',
+    type: Number,
+  })
+  @ApiParam({ name: 'fileId', description: 'ID файла', type: Number })
   @ApiNoContentResponse({ description: 'Файл удалён' })
   @ApiConflictResponse({
     description: 'Файл используется правилами',
@@ -101,8 +114,8 @@ export class MockResponseFilesController {
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   async remove(
     @CurrentUser() user: JwtPayload,
-    @Param('mockServerId') mockServerId: string,
-    @Param('fileId') fileId: string,
+    @Param('mockServerId', ParseIntPipe) mockServerId: number,
+    @Param('fileId', ParseIntPipe) fileId: number,
   ): Promise<void> {
     await this.mockResponseFilesService.remove(user.sub, mockServerId, fileId);
   }

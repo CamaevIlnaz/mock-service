@@ -3,11 +3,11 @@ import { HttpMethod, MockResponseType } from '@prisma/client';
 import { MockResponseFileMetaDto } from '../../mock-response-files/dto/mock-response-file-meta.dto';
 
 export class MockRuleResponseDto {
-  @ApiProperty({ example: 'clrule123' })
-  id!: string;
+  @ApiProperty({ example: 1 })
+  id!: number;
 
-  @ApiProperty({ example: 'clserver123' })
-  mockServerId!: string;
+  @ApiProperty({ example: 1 })
+  mockServerId!: number;
 
   @ApiProperty({ example: 'Получить продукт' })
   name!: string;
@@ -45,8 +45,8 @@ export class MockRuleResponseDto {
   })
   responseBody!: unknown;
 
-  @ApiPropertyOptional({ example: 'clfile123', nullable: true })
-  responseFileId!: string | null;
+  @ApiPropertyOptional({ example: 1, nullable: true })
+  responseFileId!: number | null;
 
   @ApiPropertyOptional({
     example: { 'X-Mock': 'true' },

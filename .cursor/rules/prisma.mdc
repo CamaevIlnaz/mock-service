@@ -15,6 +15,6 @@ Define models in `prisma/schema.prisma`.
 Use one shared `PrismaService` from `src/prisma/`.
 Never instantiate `PrismaClient` inside domain services.
 
-Prefer `String @id @default(cuid())` IDs.
+Prefer `Int @id @default(autoincrement())` IDs.
 Use `createdAt` and `updatedAt` where useful.
 Seed data belongs to Prisma seed files.

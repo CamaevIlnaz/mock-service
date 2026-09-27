@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { HttpMethod, MockResponseType } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   Allow,
   IsBoolean,
@@ -78,13 +79,14 @@ export class CreateMockRuleDto {
   responseBody?: unknown;
 
   @ApiPropertyOptional({
-    example: 'clfile123',
+    example: 1,
     description: 'ID существующего файла того же мок-сервера (для FILE)',
   })
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  responseFileId?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  responseFileId?: number;
 
   @ApiPropertyOptional({
     example: { 'X-Mock': 'true' },

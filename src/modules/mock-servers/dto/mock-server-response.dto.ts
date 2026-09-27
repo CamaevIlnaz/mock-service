@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class MockServerResponseDto {
-  @ApiProperty({ example: 'clxyz123' })
-  id!: string;
+  @ApiProperty({ example: 1 })
+  id!: number;
 
   @ApiProperty({ example: 'Мок сервер #1' })
   name!: string;
@@ -13,8 +13,8 @@ export class MockServerResponseDto {
   @ApiProperty({ example: 'dev' })
   standCode!: string;
 
-  @ApiProperty({ example: 'cluser123' })
-  userId!: string;
+  @ApiProperty({ example: 1 })
+  userId!: number;
 
   @ApiProperty({
     example: 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456',

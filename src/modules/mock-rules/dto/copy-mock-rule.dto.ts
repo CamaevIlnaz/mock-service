@@ -1,12 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, Min } from 'class-validator';
 
 export class CopyMockRuleDto {
   @ApiProperty({
-    example: 'cltarget123',
+    example: 2,
     description: 'ID целевого мок-сервера текущего пользователя',
   })
-  @IsString()
-  @IsNotEmpty()
-  targetMockServerId!: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  targetMockServerId!: number;
 }

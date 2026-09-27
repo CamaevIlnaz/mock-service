@@ -36,8 +36,8 @@ export class MockRulesService {
   ) {}
 
   async findAll(
-    userId: string,
-    mockServerId: string,
+    userId: number,
+    mockServerId: number,
   ): Promise<MockRuleResponseDto[]> {
     await this.mockServersService.findOwnedOrFail(userId, mockServerId);
 
@@ -51,17 +51,17 @@ export class MockRulesService {
   }
 
   async findOne(
-    userId: string,
-    mockServerId: string,
-    id: string,
+    userId: number,
+    mockServerId: number,
+    id: number,
   ): Promise<MockRuleResponseDto> {
     const rule = await this.findOwnedRuleOrFail(userId, mockServerId, id);
     return this.toResponse(rule);
   }
 
   async create(
-    userId: string,
-    mockServerId: string,
+    userId: number,
+    mockServerId: number,
     dto: CreateMockRuleDto,
     file?: MockResponseUpload,
   ): Promise<MockRuleResponseDto> {
@@ -111,9 +111,9 @@ export class MockRulesService {
   }
 
   async update(
-    userId: string,
-    mockServerId: string,
-    id: string,
+    userId: number,
+    mockServerId: number,
+    id: number,
     dto: UpdateMockRuleDto,
     file?: MockResponseUpload,
   ): Promise<MockRuleResponseDto> {
@@ -200,19 +200,19 @@ export class MockRulesService {
   }
 
   async remove(
-    userId: string,
-    mockServerId: string,
-    id: string,
+    userId: number,
+    mockServerId: number,
+    id: number,
   ): Promise<void> {
     await this.findOwnedRuleOrFail(userId, mockServerId, id);
     await this.prisma.mockRule.delete({ where: { id } });
   }
 
   async copy(
-    userId: string,
-    sourceMockServerId: string,
-    ruleId: string,
-    targetMockServerId: string,
+    userId: number,
+    sourceMockServerId: number,
+    ruleId: number,
+    targetMockServerId: number,
   ): Promise<MockRuleResponseDto> {
     const sourceRule = await this.findOwnedRuleOrFail(
       userId,
@@ -265,7 +265,7 @@ export class MockRulesService {
 
   private async copyRuleWithFileCopy(
     sourceRule: RuleWithFile,
-    targetMockServerId: string,
+    targetMockServerId: number,
     priority: number,
   ): Promise<MockRuleResponseDto> {
     if (!sourceRule.responseFile) {
@@ -289,7 +289,6 @@ export class MockRulesService {
       const rule = await this.prisma.$transaction(async (tx) => {
         const newFile = await tx.mockResponseFile.create({
           data: {
-            id: copied.fileId,
             mockServerId: targetMockServerId,
             originalName: sourceRule.responseFile!.originalName,
             mimeType: sourceRule.responseFile!.mimeType,
@@ -330,7 +329,7 @@ export class MockRulesService {
   }
 
   private async createWithNewFile(
-    mockServerId: string,
+    mockServerId: number,
     dto: CreateMockRuleDto,
     file: MockResponseUpload,
     priority: number,
@@ -345,7 +344,6 @@ export class MockRulesService {
       const rule = await this.prisma.$transaction(async (tx) => {
         const responseFile = await tx.mockResponseFile.create({
           data: {
-            id: saved.fileId,
             mockServerId,
             originalName: file.originalName,
             mimeType: file.mimetype,
@@ -410,7 +408,6 @@ export class MockRulesService {
       const rule = await this.prisma.$transaction(async (tx) => {
         const responseFile = await tx.mockResponseFile.create({
           data: {
-            id: saved.fileId,
             mockServerId: existing.mockServerId,
             originalName: file.originalName,
             mimeType: file.mimetype,
@@ -553,8 +550,8 @@ export class MockRulesService {
   }
 
   private async ensureFileOnServer(
-    mockServerId: string,
-    responseFileId: string,
+    mockServerId: number,
+    responseFileId: number,
   ): Promise<MockResponseFile> {
     const file = await this.prisma.mockResponseFile.findFirst({
       where: { id: responseFileId, mockServerId },
@@ -568,9 +565,9 @@ export class MockRulesService {
   }
 
   private async findOwnedRuleOrFail(
-    userId: string,
-    mockServerId: string,
-    id: string,
+    userId: number,
+    mockServerId: number,
+    id: number,
   ): Promise<RuleWithFile> {
     await this.mockServersService.findOwnedOrFail(userId, mockServerId);
 
@@ -584,7 +581,7 @@ export class MockRulesService {
     return rule;
   }
 
-  private async nextPriority(mockServerId: string): Promise<number> {
+  private async nextPriority(mockServerId: number): Promise<number> {
     const maxPriority = await this.prisma.mockRule.aggregate({
       where: { mockServerId },
       _max: { priority: true },

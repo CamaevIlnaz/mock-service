@@ -98,7 +98,7 @@ export class AuthService {
     reply.clearCookie(cookieName, { path: '/' });
   }
 
-  async me(userId: string): Promise<AuthUserResponseDto> {
+  async me(userId: number): Promise<AuthUserResponseDto> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {

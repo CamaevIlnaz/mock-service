@@ -21,7 +21,7 @@ export type AvatarUpload = {
 export async function saveAvatarFile(
   file: AvatarUpload,
   uploadsDir: string,
-  userId: string,
+  userId: number,
 ): Promise<string> {
   const mimeType = file.mimetype;
 

@@ -26,7 +26,7 @@ enum MockResponseType {
 }
 
 model User {
-  id           String       @id @default(cuid())
+  id           Int          @id @default(autoincrement())
   login        String       @unique
   passwordHash String       @map("password_hash")
   firstName    String       @map("first_name")
@@ -40,7 +40,7 @@ model User {
 }
 
 model Stand {
-  id          String       @id @default(cuid())
+  id          Int          @id @default(autoincrement())
   code        String       @unique
   name        String
   domain      String
@@ -53,11 +53,11 @@ model Stand {
 }
 
 model MockServer {
-  id              String   @id @default(cuid())
+  id              Int      @id @default(autoincrement())
   name            String
   sortOrder       Int      @default(0) @map("sort_order")
   standCode       String   @map("stand_code")
-  userId          String   @map("user_id")
+  userId          Int      @map("user_id")
   connectionToken String   @unique @map("connection_token")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
@@ -73,8 +73,8 @@ model MockServer {
 }
 
 model MockRule {
-  id              String           @id @default(cuid())
-  mockServerId    String           @map("mock_server_id")
+  id              Int              @id @default(autoincrement())
+  mockServerId    Int              @map("mock_server_id")
   name            String
   method          HttpMethod
   urlMask         String           @map("url_mask") @db.VarChar(1000)
@@ -84,7 +84,7 @@ model MockRule {
   delayMs         Int              @default(0) @map("delay_ms")
   responseType    MockResponseType @default(INLINE_JSON) @map("response_type")
   responseBody    Json?            @map("response_body")
-  responseFileId  String?          @map("response_file_id")
+  responseFileId  Int?             @map("response_file_id")
   responseHeaders Json?            @map("response_headers")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
@@ -98,8 +98,8 @@ model MockRule {
 }
 
 model MockResponseFile {
-  id           String   @id @default(cuid())
-  mockServerId String   @map("mock_server_id")
+  id           Int      @id @default(autoincrement())
+  mockServerId Int      @map("mock_server_id")
   originalName String   @map("original_name")
   mimeType     String   @map("mime_type")
   sizeBytes    Int      @map("size_bytes")

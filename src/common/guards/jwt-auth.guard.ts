@@ -10,7 +10,7 @@ import { Role } from '@prisma/client';
 import type { FastifyRequest } from 'fastify';
 
 export type JwtPayload = {
-  sub: string;
+  sub: number;
   login: string;
   role: Role;
 };
@@ -40,7 +40,10 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-      request.user = payload;
+      request.user = {
+        ...payload,
+        sub: Number(payload.sub),
+      };
       return true;
     } catch {
       throw new UnauthorizedException('Не авторизован');

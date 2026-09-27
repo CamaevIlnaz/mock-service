@@ -1,0 +1,16 @@
+Generate Git commit messages in Russian using Conventional Commits.
+
+Use present tense, third person singular:
+
+* Добавляет
+* Исправляет
+* Обновляет
+* Удаляет
+* Оптимизирует
+
+Examples:
+
+* feat: Добавляет авторизацию через Google
+* fix: Исправляет ошибку сохранения
+
+Do not use infinitive forms (добавить, исправить, обновить).

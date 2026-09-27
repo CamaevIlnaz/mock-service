@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Req,
@@ -52,28 +53,36 @@ export class MockRulesController {
 
   @Get()
   @ApiOperation({ summary: 'Список правил мокирования мок-сервера' })
-  @ApiParam({ name: 'mockServerId', description: 'ID мок-сервера' })
+  @ApiParam({
+    name: 'mockServerId',
+    description: 'ID мок-сервера',
+    type: Number,
+  })
   @ApiOkResponse({ type: MockRuleResponseDto, isArray: true })
   @ApiNotFoundResponse({ description: 'Мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   findAll(
     @CurrentUser() user: JwtPayload,
-    @Param('mockServerId') mockServerId: string,
+    @Param('mockServerId', ParseIntPipe) mockServerId: number,
   ): Promise<MockRuleResponseDto[]> {
     return this.mockRulesService.findAll(user.sub, mockServerId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Получить правило мокирования по id' })
-  @ApiParam({ name: 'mockServerId', description: 'ID мок-сервера' })
-  @ApiParam({ name: 'id', description: 'ID правила' })
+  @ApiParam({
+    name: 'mockServerId',
+    description: 'ID мок-сервера',
+    type: Number,
+  })
+  @ApiParam({ name: 'id', description: 'ID правила', type: Number })
   @ApiOkResponse({ type: MockRuleResponseDto })
   @ApiNotFoundResponse({ description: 'Правило или мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   findOne(
     @CurrentUser() user: JwtPayload,
-    @Param('mockServerId') mockServerId: string,
-    @Param('id') id: string,
+    @Param('mockServerId', ParseIntPipe) mockServerId: number,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<MockRuleResponseDto> {
     return this.mockRulesService.findOne(user.sub, mockServerId, id);
   }
@@ -84,7 +93,11 @@ export class MockRulesController {
     description:
       'JSON для INLINE_JSON или FILE с существующим responseFileId; multipart (data+file) для нового файла',
   })
-  @ApiParam({ name: 'mockServerId', description: 'ID мок-сервера' })
+  @ApiParam({
+    name: 'mockServerId',
+    description: 'ID мок-сервера',
+    type: Number,
+  })
   @ApiConsumes('application/json', 'multipart/form-data')
   @ApiBody({
     description:
@@ -109,7 +122,7 @@ export class MockRulesController {
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   async create(
     @CurrentUser() user: JwtPayload,
-    @Param('mockServerId') mockServerId: string,
+    @Param('mockServerId', ParseIntPipe) mockServerId: number,
     @Req() request: FastifyRequest,
   ): Promise<MockRuleResponseDto> {
     const { dto, file } = await this.parseRuleRequest(
@@ -125,8 +138,12 @@ export class MockRulesController {
     description:
       'JSON или multipart (data+file) при загрузке нового файла ответа',
   })
-  @ApiParam({ name: 'mockServerId', description: 'ID мок-сервера' })
-  @ApiParam({ name: 'id', description: 'ID правила' })
+  @ApiParam({
+    name: 'mockServerId',
+    description: 'ID мок-сервера',
+    type: Number,
+  })
+  @ApiParam({ name: 'id', description: 'ID правила', type: Number })
   @ApiConsumes('application/json', 'multipart/form-data')
   @ApiBody({
     schema: {
@@ -149,8 +166,8 @@ export class MockRulesController {
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   async update(
     @CurrentUser() user: JwtPayload,
-    @Param('mockServerId') mockServerId: string,
-    @Param('id') id: string,
+    @Param('mockServerId', ParseIntPipe) mockServerId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Req() request: FastifyRequest,
   ): Promise<MockRuleResponseDto> {
     const { dto, file } = await this.parseRuleRequest(
@@ -165,15 +182,19 @@ export class MockRulesController {
   @ApiOperation({
     summary: 'Удалить правило мокирования (файл ответа не удаляется)',
   })
-  @ApiParam({ name: 'mockServerId', description: 'ID мок-сервера' })
-  @ApiParam({ name: 'id', description: 'ID правила' })
+  @ApiParam({
+    name: 'mockServerId',
+    description: 'ID мок-сервера',
+    type: Number,
+  })
+  @ApiParam({ name: 'id', description: 'ID правила', type: Number })
   @ApiNoContentResponse({ description: 'Правило удалено' })
   @ApiNotFoundResponse({ description: 'Правило или мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   async remove(
     @CurrentUser() user: JwtPayload,
-    @Param('mockServerId') mockServerId: string,
-    @Param('id') id: string,
+    @Param('mockServerId', ParseIntPipe) mockServerId: number,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<void> {
     await this.mockRulesService.remove(user.sub, mockServerId, id);
   }
@@ -182,16 +203,20 @@ export class MockRulesController {
   @ApiOperation({
     summary: 'Скопировать правило в мок-сервер текущего пользователя',
   })
-  @ApiParam({ name: 'mockServerId', description: 'ID исходного мок-сервера' })
-  @ApiParam({ name: 'id', description: 'ID правила' })
+  @ApiParam({
+    name: 'mockServerId',
+    description: 'ID исходного мок-сервера',
+    type: Number,
+  })
+  @ApiParam({ name: 'id', description: 'ID правила', type: Number })
   @ApiCreatedResponse({ type: MockRuleResponseDto })
   @ApiBadRequestResponse({ description: 'Некорректные данные' })
   @ApiNotFoundResponse({ description: 'Правило или мок-сервер не найден' })
   @ApiUnauthorizedResponse({ description: 'Не авторизован' })
   copy(
     @CurrentUser() user: JwtPayload,
-    @Param('mockServerId') mockServerId: string,
-    @Param('id') id: string,
+    @Param('mockServerId', ParseIntPipe) mockServerId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: CopyMockRuleDto,
   ): Promise<MockRuleResponseDto> {
     return this.mockRulesService.copy(

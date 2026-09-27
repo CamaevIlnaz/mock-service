@@ -19,7 +19,7 @@ export class MockServersService {
     private readonly configService: ConfigService,
   ) {}
 
-  async findAll(userId: string): Promise<MockServerResponseDto[]> {
+  async findAll(userId: number): Promise<MockServerResponseDto[]> {
     const servers = await this.prisma.mockServer.findMany({
       where: { userId },
       orderBy: { sortOrder: 'asc' },
@@ -27,13 +27,13 @@ export class MockServersService {
     return servers.map((server) => this.toResponse(server));
   }
 
-  async findOne(userId: string, id: string): Promise<MockServerResponseDto> {
+  async findOne(userId: number, id: number): Promise<MockServerResponseDto> {
     const server = await this.findOwnedOrFail(userId, id);
     return this.toResponse(server);
   }
 
   async create(
-    userId: string,
+    userId: number,
     dto: CreateMockServerDto,
   ): Promise<MockServerResponseDto> {
     await this.ensureStandExists(dto.standCode);
@@ -68,8 +68,8 @@ export class MockServersService {
   }
 
   async update(
-    userId: string,
-    id: string,
+    userId: number,
+    id: number,
     dto: UpdateMockServerDto,
   ): Promise<MockServerResponseDto> {
     await this.findOwnedOrFail(userId, id);
@@ -90,7 +90,7 @@ export class MockServersService {
     return this.toResponse(server);
   }
 
-  async remove(userId: string, id: string): Promise<void> {
+  async remove(userId: number, id: number): Promise<void> {
     await this.findOwnedOrFail(userId, id);
     await this.prisma.mockServer.delete({ where: { id } });
 
@@ -101,7 +101,7 @@ export class MockServersService {
     await removeMockServerResponseDir(uploadsDir, id);
   }
 
-  async findOwnedOrFail(userId: string, id: string): Promise<MockServer> {
+  async findOwnedOrFail(userId: number, id: number): Promise<MockServer> {
     const server = await this.prisma.mockServer.findFirst({
       where: { id, userId },
     });

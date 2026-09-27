@@ -17,7 +17,7 @@ export class UsersService {
   ) {}
 
   async updateAvatar(
-    userId: string,
+    userId: number,
     avatar: AvatarUpload,
   ): Promise<AuthUserResponseDto> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });

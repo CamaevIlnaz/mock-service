@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class StandResponseDto {
-  @ApiProperty({ example: 'clxyz123' })
-  id!: string;
+  @ApiProperty({ example: 1 })
+  id!: number;
 
   @ApiProperty({ example: 'dev' })
   code!: string;

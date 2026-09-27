@@ -2,8 +2,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
 export class AuthUserResponseDto {
-  @ApiProperty({ example: 'clxyz123' })
-  id!: string;
+  @ApiProperty({ example: 1 })
+  id!: number;
 
   @ApiProperty({ example: 'ivanov' })
   login!: string;
@@ -15,7 +15,7 @@ export class AuthUserResponseDto {
   role!: Role;
 
   @ApiPropertyOptional({
-    example: '/uploads/avatars/clxyz123-uuid.jpg',
+    example: '/uploads/avatars/1-uuid.jpg',
     nullable: true,
   })
   avatarUrl!: string | null;

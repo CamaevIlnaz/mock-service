@@ -20,7 +20,7 @@ export class StandsService {
     return stands.map((stand) => this.toResponse(stand));
   }
 
-  async findOne(id: string): Promise<StandResponseDto> {
+  async findOne(id: number): Promise<StandResponseDto> {
     const stand = await this.prisma.stand.findUnique({ where: { id } });
     if (!stand) {
       throw new NotFoundException('Стенд не найден');
@@ -45,7 +45,7 @@ export class StandsService {
     }
   }
 
-  async update(id: string, dto: UpdateStandDto): Promise<StandResponseDto> {
+  async update(id: number, dto: UpdateStandDto): Promise<StandResponseDto> {
     await this.ensureExists(id);
 
     try {
@@ -65,7 +65,7 @@ export class StandsService {
     }
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: number): Promise<void> {
     const stand = await this.prisma.stand.findUnique({ where: { id } });
     if (!stand) {
       throw new NotFoundException('Стенд не найден');
@@ -84,7 +84,7 @@ export class StandsService {
     await this.prisma.stand.delete({ where: { id } });
   }
 
-  private async ensureExists(id: string): Promise<void> {
+  private async ensureExists(id: number): Promise<void> {
     const stand = await this.prisma.stand.findUnique({
       where: { id },
       select: { id: true },
