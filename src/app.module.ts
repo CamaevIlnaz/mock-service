@@ -4,6 +4,7 @@ import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
+import { MockProxyModule } from './modules/mock-proxy/mock-proxy.module';
 import { MockResponseFilesModule } from './modules/mock-response-files/mock-response-files.module';
 import { MockRulesModule } from './modules/mock-rules/mock-rules.module';
 import { MockServersModule } from './modules/mock-servers/mock-servers.module';
@@ -26,6 +27,7 @@ import { PrismaModule } from './prisma/prisma.module';
     MockServersModule,
     MockRulesModule,
     MockResponseFilesModule,
+    MockProxyModule,
   ],
 })
 export class AppModule {}

@@ -15,7 +15,7 @@ export class MockRuleResponseDto {
   @ApiProperty({ enum: HttpMethod, example: HttpMethod.GET })
   method!: HttpMethod;
 
-  @ApiProperty({ example: '/api/products/:id' })
+  @ApiProperty({ example: '/products/:id' })
   urlMask!: string;
 
   @ApiProperty({ example: true })

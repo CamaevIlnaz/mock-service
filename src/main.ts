@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -11,12 +11,15 @@ import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import { mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { parse as parseQueryString } from 'node:querystring';
 import { AppModule } from './app.module';
+
+const MOCK_API_PREFIX = '/mockapi/';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter(),
+    new FastifyAdapter({ bodyLimit: 10 * 1024 * 1024 }),
   );
 
   const configService = app.get(ConfigService);
@@ -58,7 +61,9 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
-  app.setGlobalPrefix(apiPrefix);
+  app.setGlobalPrefix(apiPrefix, {
+    exclude: [{ path: 'mockapi/{*path}', method: RequestMethod.ALL }],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -82,19 +87,47 @@ async function bootstrap() {
   await app.init();
 
   // Разрешаем пустой body при Content-Type: application/json (например logout).
+  // Для /mockapi body не парсим: proxy пересылает его на стенд байт в байт.
   const fastify = app.getHttpAdapter().getInstance();
   fastify.removeContentTypeParser('application/json');
   fastify.addContentTypeParser(
     'application/json',
-    { parseAs: 'string' },
-    (_req, body, done) => {
+    { parseAs: 'buffer' },
+    (req, body, done) => {
+      const buffer = Buffer.isBuffer(body) ? body : Buffer.from(body);
+      if (req.url.startsWith(MOCK_API_PREFIX)) {
+        done(null, buffer);
+        return;
+      }
       try {
-        const raw = typeof body === 'string' ? body : body.toString('utf8');
+        const raw = buffer.toString('utf8');
         const json: unknown = raw === '' ? {} : JSON.parse(raw);
         done(null, json);
       } catch (error) {
         done(error as Error, undefined);
       }
+    },
+  );
+  // Nest по умолчанию подключает @fastify/formbody, который съедает body до proxy.
+  fastify.removeContentTypeParser('application/x-www-form-urlencoded');
+  fastify.addContentTypeParser(
+    'application/x-www-form-urlencoded',
+    { parseAs: 'buffer' },
+    (req, body, done) => {
+      const buffer = Buffer.isBuffer(body) ? body : Buffer.from(body);
+      if (req.url.startsWith(MOCK_API_PREFIX)) {
+        done(null, buffer);
+        return;
+      }
+      done(null, parseQueryString(buffer.toString('utf8')));
+    },
+  );
+  // Любой другой Content-Type (xml, octet-stream и т.д.) принимаем как Buffer.
+  fastify.addContentTypeParser(
+    '*',
+    { parseAs: 'buffer' },
+    (_req, body, done) => {
+      done(null, body);
     },
   );
 

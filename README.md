@@ -2,7 +2,7 @@
 
 Backend-сервис для приёма запросов от frontend-приложений, возврата настроенных mock-ответов и проксирования на выбранные стенды.
 
-На текущем этапе: NestJS + Fastify, PostgreSQL, Prisma, health-check, Swagger, пользователи и JWT-авторизация через httpOnly cookie, CRUD стендов, мок-серверов, правил мокирования и файлов ответов.
+На текущем этапе: NestJS + Fastify, PostgreSQL, Prisma, health-check, Swagger, пользователи и JWT-авторизация через httpOnly cookie, CRUD стендов, мок-серверов, правил мокирования и файлов ответов, mock proxy `/mockapi` с проксированием на стенды.
 
 ## Стек
 
@@ -31,6 +31,7 @@ src/
     mock-servers/  # персональные мок-серверы
     mock-rules/    # правила мокирования
     mock-response-files/ # файлы ответов мок-сервера
+    mock-proxy/    # /mockapi: mock-ответы и проксирование на стенд
   prisma/          # PrismaModule / PrismaService
   app.module.ts
   main.ts
@@ -153,11 +154,48 @@ CORS: `CORS_ORIGIN` + `credentials: true`.
 
 Один файл может использоваться несколькими правилами одного мок-сервера.
 
-## Путь `/mockapi` (зарезервирован)
+## Mock proxy `/mockapi`
 
-Путь **`/mockapi/{connectionToken}/...`** зарезервирован под будущие запросы с фронта: они будут проксироваться на стенд из настройки мок-сервера (`domain` + `basePath`).
+Запросы тестируемого приложения идут на **`/mockapi/{connectionToken}/{url}`** (без префикса `/api`, без JWT). Мок-сервер определяется по `connectionToken` из CRUD мок-серверов.
 
-Сейчас proxy **не реализован**. Сервисный API — только под `/api/...`.
+Алгоритм:
+
+1. Среди включённых правил мок-сервера с тем же HTTP-методом (по `priority` asc, затем `id` asc) ищется первое, у которого `urlMask` совпадает с `{url}`.
+2. Если правило найдено — отдаётся mock-ответ (`statusCode`, `delayMs`, `responseHeaders`, `INLINE_JSON` или файл), заголовок `X-Mocked-By: smart-mock-proxy`.
+3. Иначе запрос проксируется на **`{stand.domain}{stand.basePath}{url}?query`** с тем же методом, заголовками и body; заголовок `X-Mocked-By: proxy`.
+
+Пример: `domain=https://dev.example.com`, `basePath=/api`, запрос `GET /mockapi/{token}/products?page=1` уходит на `https://dev.example.com/api/products?page=1`.
+
+Маска `urlMask` задаётся относительно `{url}` (без `/api` фронта и без `basePath`):
+
+- `/products` — точное совпадение (trailing slash не важен)
+- `/products/:id` — `:param` соответствует ровно одному сегменту
+- `/products/*` — `*` соответствует любому остатку пути, в том числе пустому
+
+Query и заголовки в матчинге не участвуют. Методы `HEAD` и `OPTIONS` всегда проксируются.
+
+Ошибки: `404` — неизвестный `connectionToken`; `502` — стенд недоступен или `domain` некорректен; `504` — стенд не ответил за 30 секунд. Редиректы стенда (`3xx`) отдаются клиенту как есть. Лимит body — 10 МБ.
+
+### Подключение через webpack devServer
+
+Браузер ходит на dev-сервер webpack, а тот проксирует `/api` в mock-service:
+
+```js
+// webpack.config.js
+devServer: {
+  proxy: [
+    {
+      context: ['/api'],
+      target: 'http://localhost:3000',
+      pathRewrite: { '^/api': `/mockapi/${process.env.MOCK_TOKEN}` },
+      changeOrigin: true,
+      cookieDomainRewrite: 'localhost',
+    },
+  ],
+},
+```
+
+Фронт шлёт `/api/products`, webpack отправляет `/mockapi/{connectionToken}/products`, mock-service отвечает по правилу или проксирует на стенд. `MOCK_TOKEN` — `connectionToken` нужного мок-сервера.
 
 ## Основные команды
 
@@ -194,8 +232,6 @@ CORS: `CORS_ORIGIN` + `credentials: true`.
 
 ## Что будет дальше
 
-- proxy `/mockapi/{connectionToken}` на стенды
-- mock engine
 - сценарии моков и история запросов
 - Record/Replay
 - OpenAPI-интеграция

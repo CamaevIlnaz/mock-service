@@ -27,7 +27,11 @@ export class CreateMockRuleDto {
   @IsEnum(HttpMethod)
   method!: HttpMethod;
 
-  @ApiProperty({ example: '/api/products/:id' })
+  @ApiProperty({
+    example: '/products/:id',
+    description:
+      'Маска path после /mockapi/{connectionToken}: `:param` — один сегмент, `*` — любой остаток',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(1000)
