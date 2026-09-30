@@ -19,14 +19,28 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { MockServersService } from '../mock-servers/mock-servers.service';
 import { MockResponseFileMetaDto } from '../mock-response-files/dto/mock-response-file-meta.dto';
+import { CatalogMockRuleResponseDto } from './dto/catalog-mock-rule-response.dto';
 import { CreateMockRuleDto } from './dto/create-mock-rule.dto';
 import { ListMockRulesQueryDto } from './dto/list-mock-rules-query.dto';
 import { MockRuleResponseDto } from './dto/mock-rule-response.dto';
+import { PaginatedCatalogMockRulesResponseDto } from './dto/paginated-catalog-mock-rules-response.dto';
 import { PaginatedMockRulesResponseDto } from './dto/paginated-mock-rules-response.dto';
 import { UpdateMockRuleDto } from './dto/update-mock-rule.dto';
 
 type RuleWithFile = MockRule & {
   responseFile: MockResponseFile | null;
+};
+
+type CatalogRule = RuleWithFile & {
+  mockServer: {
+    name: string;
+    standCode: string;
+    user: {
+      id: number;
+      login: string;
+      firstName: string;
+    };
+  };
 };
 
 @Injectable()
@@ -46,7 +60,7 @@ export class MockRulesService {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const where = this.buildListWhere(mockServerId, query);
+    const where = this.buildListWhere(query, mockServerId);
 
     const [total, rules] = await this.prisma.$transaction([
       this.prisma.mockRule.count({ where }),
@@ -68,11 +82,57 @@ export class MockRulesService {
     };
   }
 
-  private buildListWhere(
-    mockServerId: number,
+  async findAllCatalog(
     query: ListMockRulesQueryDto,
+  ): Promise<PaginatedCatalogMockRulesResponseDto> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const where = this.buildListWhere(query);
+
+    const [total, rules] = await this.prisma.$transaction([
+      this.prisma.mockRule.count({ where }),
+      this.prisma.mockRule.findMany({
+        where,
+        include: {
+          responseFile: true,
+          mockServer: {
+            select: {
+              name: true,
+              standCode: true,
+              user: {
+                select: {
+                  id: true,
+                  login: true,
+                  firstName: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
+
+    return {
+      items: rules.map((rule) => this.toCatalogResponse(rule)),
+      total,
+      page,
+      limit,
+      totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+    };
+  }
+
+  private buildListWhere(
+    query: ListMockRulesQueryDto,
+    mockServerId?: number,
   ): Prisma.MockRuleWhereInput {
-    const where: Prisma.MockRuleWhereInput = { mockServerId };
+    const where: Prisma.MockRuleWhereInput = {};
+
+    if (mockServerId !== undefined) {
+      where.mockServerId = mockServerId;
+    }
 
     const search = query.search?.trim();
     if (search) {
@@ -262,10 +322,27 @@ export class MockRulesService {
       sourceMockServerId,
       ruleId,
     );
+    return this.copyRuleToServer(userId, sourceRule, targetMockServerId);
+  }
+
+  async copyById(
+    userId: number,
+    ruleId: number,
+    targetMockServerId: number,
+  ): Promise<MockRuleResponseDto> {
+    const sourceRule = await this.findRuleOrFail(ruleId);
+    return this.copyRuleToServer(userId, sourceRule, targetMockServerId);
+  }
+
+  private async copyRuleToServer(
+    userId: number,
+    sourceRule: RuleWithFile,
+    targetMockServerId: number,
+  ): Promise<MockRuleResponseDto> {
     await this.mockServersService.findOwnedOrFail(userId, targetMockServerId);
 
     const priority = await this.nextPriority(targetMockServerId);
-    const sameServer = sourceMockServerId === targetMockServerId;
+    const sameServer = sourceRule.mockServerId === targetMockServerId;
 
     if (
       sourceRule.responseType === MockResponseType.FILE &&
@@ -624,6 +701,17 @@ export class MockRulesService {
     return rule;
   }
 
+  private async findRuleOrFail(id: number): Promise<RuleWithFile> {
+    const rule = await this.prisma.mockRule.findFirst({
+      where: { id },
+      include: { responseFile: true },
+    });
+    if (!rule) {
+      throw new NotFoundException('Правило мокирования не найдено');
+    }
+    return rule;
+  }
+
   private async nextPriority(mockServerId: number): Promise<number> {
     const maxPriority = await this.prisma.mockRule.aggregate({
       where: { mockServerId },
@@ -659,6 +747,19 @@ export class MockRulesService {
         : null,
       createdAt: rule.createdAt,
       updatedAt: rule.updatedAt,
+    };
+  }
+
+  private toCatalogResponse(rule: CatalogRule): CatalogMockRuleResponseDto {
+    return {
+      ...this.toResponse(rule),
+      mockServerName: rule.mockServer.name,
+      standCode: rule.mockServer.standCode,
+      owner: {
+        id: rule.mockServer.user.id,
+        login: rule.mockServer.user.login,
+        firstName: rule.mockServer.user.firstName,
+      },
     };
   }
 
