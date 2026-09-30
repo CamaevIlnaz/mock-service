@@ -92,7 +92,9 @@ yarn start:dev
 - `POST /api/auth/login` — JSON `{ login, password }`; выставляет cookie
 - `POST /api/auth/logout` — очищает cookie
 - `GET /api/auth/me` — текущий пользователь (по cookie)
-- `POST /api/users/me/avatar` — замена аватара (multipart, поле `avatar`)
+- `PATCH /api/users/me` — JSON `{ firstName }`; обновление имени (login менять нельзя)
+- `PATCH /api/users/me/password` — JSON `{ currentPassword, newPassword }`; смена пароля
+- `POST /api/users/me/avatar` — замена аватара (multipart, поле `avatar`, PNG или JPG)
 
 Фронтенд должен вызывать API с `credentials: 'include'` и обрабатывать 401. Токен в JSON не отдаётся.
 

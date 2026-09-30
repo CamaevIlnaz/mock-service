@@ -3,12 +3,11 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { BadRequestException } from '@nestjs/common';
 
-const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png']);
 
 const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
-  'image/webp': 'webp',
 };
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
@@ -27,7 +26,7 @@ export async function saveAvatarFile(
 
   if (!ALLOWED_MIME_TYPES.has(mimeType)) {
     throw new BadRequestException(
-      'Аватар должен быть изображением JPEG, PNG или WebP',
+      'Аватар должен быть изображением PNG или JPG',
     );
   }
 

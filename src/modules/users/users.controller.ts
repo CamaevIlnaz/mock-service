@@ -1,11 +1,14 @@
 import {
   BadRequestException,
+  Body,
   Controller,
+  Patch,
   Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBody,
   ApiConsumes,
   ApiCookieAuth,
@@ -20,6 +23,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import type { JwtPayload } from '../../common/guards/jwt-auth.guard';
 import type { AvatarUpload } from '../../common/utils/avatar-storage';
 import { AuthUserResponseDto } from '../auth/dto/auth-user-response.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
@@ -28,6 +33,34 @@ import { UsersService } from './users.service';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Patch('me')
+  @ApiOperation({ summary: 'Обновить профиль (имя)' })
+  @ApiOkResponse({ type: AuthUserResponseDto })
+  @ApiBadRequestResponse({ description: 'Ошибка валидации' })
+  @ApiUnauthorizedResponse({ description: 'Не авторизован' })
+  async updateProfile(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: UpdateProfileDto,
+  ): Promise<AuthUserResponseDto> {
+    return this.usersService.updateProfile(user.sub, dto);
+  }
+
+  @Patch('me/password')
+  @ApiOperation({ summary: 'Сменить пароль' })
+  @ApiOkResponse({ description: 'Пароль изменён' })
+  @ApiBadRequestResponse({
+    description:
+      'Текущий пароль неверен, новый совпадает с текущим или не прошёл валидацию',
+  })
+  @ApiUnauthorizedResponse({ description: 'Не авторизован' })
+  async changePassword(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<{ ok: true }> {
+    await this.usersService.changePassword(user.sub, dto);
+    return { ok: true };
+  }
 
   @Post('me/avatar')
   @ApiOperation({ summary: 'Загрузить или заменить аватар' })
