@@ -206,6 +206,7 @@ devServer: {
 | `yarn start:dev` | Запуск в режиме разработки |
 | `yarn start:prod` | Запуск production-сборки |
 | `yarn build` | Сборка проекта |
+| `yarn build:web` | Сборка фронта в `public/` |
 | `yarn lint` | ESLint с автофиксом |
 | `yarn format` | Prettier |
 | `yarn test` | Unit-тесты |
@@ -231,6 +232,19 @@ devServer: {
 - `COOKIE_NAME` — имя auth-cookie (по умолчанию `access_token`)
 - `CORS_ORIGIN` — origin фронтенда для CORS с credentials
 - `UPLOADS_DIR` — каталог загрузок (по умолчанию `uploads`)
+- `PUBLIC_DIR` — каталог собранного фронта (по умолчанию `public`)
+
+## Фронтенд в `public`
+
+Собранный фронт (`web-mock-service`) лежит в `public/` и раздаётся этим же backend с корня `/`: файлы отдаются как есть, остальные пути без расширения получают `index.html` (SPA-роутинг). `/api`, `/mockapi`, `/uploads` и Swagger работают как раньше. Если в `public/` нет `index.html`, раздача фронта отключена.
+
+Пересобрать фронт (репозиторий `web-mock-service` должен лежать рядом):
+
+```bash
+yarn build:web
+```
+
+Фронт собирается с пустым `VITE_API_BASE_URL`, поэтому запросы идут на тот же origin и CORS не нужен. На сервере достаточно развернуть только этот backend вместе с папкой `public/`.
 
 ## Что будет дальше
 

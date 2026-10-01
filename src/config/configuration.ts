@@ -11,4 +11,5 @@ export default registerAs('app', () => ({
   cookieName: process.env.COOKIE_NAME ?? 'access_token',
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   uploadsDir: process.env.UPLOADS_DIR ?? 'uploads',
+  publicDir: process.env.PUBLIC_DIR ?? 'public',
 }));

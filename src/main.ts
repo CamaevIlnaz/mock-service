@@ -9,8 +9,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookie from '@fastify/cookie';
 import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
+import { existsSync, statSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { extname, join, resolve } from 'node:path';
 import { parse as parseQueryString } from 'node:querystring';
 import { AppModule } from './app.module';
 
@@ -38,6 +39,9 @@ async function bootstrap() {
     'app.cookieName',
     'access_token',
   );
+  const publicDir = resolve(
+    configService.get<string>('app.publicDir', 'public'),
+  );
 
   await mkdir(join(uploadsDir, 'avatars'), { recursive: true });
   await mkdir(join(uploadsDir, 'mock-responses'), { recursive: true });
@@ -53,6 +57,10 @@ async function bootstrap() {
     prefix: '/uploads/',
     decorateReply: false,
   });
+  const hasPublic = existsSync(join(publicDir, 'index.html'));
+  if (hasPublic) {
+    await app.register(fastifyStatic, { root: publicDir, serve: false });
+  }
 
   app.enableCors({
     origin: corsOrigin,
@@ -130,6 +138,32 @@ async function bootstrap() {
       done(null, body);
     },
   );
+
+  // Фронт (SPA) из public: существующие файлы отдаём как есть,
+  // остальные пути без расширения — index.html для клиентского роутинга.
+  if (hasPublic) {
+    const backendPrefixes = [`/${apiPrefix}/`, '/uploads/', MOCK_API_PREFIX];
+    fastify.get('/*', (req, reply) => {
+      const path = req.url.split('?')[0];
+      if (backendPrefixes.some((prefix) => path.startsWith(prefix))) {
+        return reply.callNotFound();
+      }
+      const filePath = decodeURIComponent(path).replace(/^\/+/, '');
+      const absolutePath = resolve(publicDir, filePath);
+      if (
+        filePath !== '' &&
+        absolutePath.startsWith(publicDir) &&
+        existsSync(absolutePath) &&
+        statSync(absolutePath).isFile()
+      ) {
+        return reply.sendFile(filePath);
+      }
+      if (extname(filePath) !== '') {
+        return reply.callNotFound();
+      }
+      return reply.header('Cache-Control', 'no-cache').sendFile('index.html');
+    });
+  }
 
   await app.listen(port, '0.0.0.0');
 

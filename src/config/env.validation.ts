@@ -59,6 +59,10 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   UPLOADS_DIR = 'uploads';
+
+  @IsString()
+  @IsOptional()
+  PUBLIC_DIR = 'public';
 }
 
 export function validateEnv(config: Record<string, unknown>) {

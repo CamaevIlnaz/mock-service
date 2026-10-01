@@ -9,6 +9,7 @@
   "scripts": {
     "build": "prisma generate && nest build",
     "postinstall": "prisma generate",
+    "build:web": "cd ../web-mock-service && VITE_API_BASE_URL= yarn vite build --outDir ../mock-service/public --emptyOutDir",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"prisma/**/*.prisma\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
