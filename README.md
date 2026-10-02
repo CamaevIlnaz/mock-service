@@ -233,6 +233,7 @@ devServer: {
 - `CORS_ORIGIN` — origin фронтенда для CORS с credentials
 - `UPLOADS_DIR` — каталог загрузок (по умолчанию `uploads`)
 - `PUBLIC_DIR` — каталог собранного фронта (по умолчанию `public`)
+- `PRISMA_SCHEMA_ENGINE_BINARY` — путь к бинарнику schema engine для серверов без доступа к CDN Prisma (см. ниже)
 
 ## Фронтенд в `public`
 
@@ -245,6 +246,47 @@ yarn build:web
 ```
 
 Фронт собирается с пустым `VITE_API_BASE_URL`, поэтому запросы идут на тот же origin и CORS не нужен. На сервере достаточно развернуть только этот backend вместе с папкой `public/`.
+
+## Сервер без доступа к CDN Prisma
+
+Prisma Client работает через драйвер-адаптер `@prisma/adapter-pg` (`engineType = "client"`), поэтому нативный query engine не нужен. Но CLI Prisma перед `prisma generate` и `prisma migrate` всё равно скачивает **schema engine** с `binaries.prisma.sh` под платформу сервера (например `debian-openssl-3.0.x`). Если доступа к этому адресу нет, бинарник нужно положить на сервер вручную.
+
+1. Узнайте версию OpenSSL на сервере: `openssl version`. Для `3.x` нужен target `debian-openssl-3.0.x`, для `1.1.x` — `debian-openssl-1.1.x`.
+
+2. Скачайте бинарник на любой машине с интернетом. Хэш в ссылке соответствует Prisma `6.19.3`; после обновления `prisma` его нужно взять заново: `node -p "require('@prisma/engines-version').enginesVersion"`.
+
+   Linux/macOS:
+
+   ```bash
+   curl -L -o schema-engine.gz https://binaries.prisma.sh/all_commits/c2990dca591cba766e3b7ef5d9e8a84796e47ab7/debian-openssl-3.0.x/schema-engine.gz
+   ```
+
+   Windows (PowerShell, именно `curl.exe`):
+
+   ```powershell
+   curl.exe -L -o schema-engine.gz https://binaries.prisma.sh/all_commits/c2990dca591cba766e3b7ef5d9e8a84796e47ab7/debian-openssl-3.0.x/schema-engine.gz
+   ```
+
+3. Скопируйте файл на сервер и распакуйте:
+
+   ```bash
+   scp schema-engine.gz user@server:/opt/prisma/
+   # на сервере
+   cd /opt/prisma
+   gunzip schema-engine.gz
+   chmod +x schema-engine
+   ./schema-engine --version
+   ```
+
+   Ошибка про `libssl` при запуске означает, что не совпала версия OpenSSL — скачайте другой target.
+
+4. Задайте переменную в окружении, где выполняются `yarn install`, `yarn build` и `yarn prisma:migrate:deploy` (shell, systemd, Docker):
+
+   ```bash
+   export PRISMA_SCHEMA_ENGINE_BINARY=/opt/prisma/schema-engine
+   ```
+
+С этой переменной `prisma generate` и `prisma migrate deploy` ничего не скачивают. При `yarn install` пакет `@prisma/engines` всё ещё пытается загрузить бинарники в `postinstall`, но ошибка там подавляется и установку не прерывает.
 
 ## Что будет дальше
 
