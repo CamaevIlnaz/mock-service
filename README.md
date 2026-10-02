@@ -43,6 +43,8 @@ docker-compose.yml
 
 ## Быстрый старт
 
+Требуется Node.js 20+.
+
 ### 1. Установка зависимостей
 
 ```bash
@@ -251,20 +253,20 @@ yarn build:web
 
 Prisma Client работает через драйвер-адаптер `@prisma/adapter-pg` (`engineType = "client"`), поэтому нативный query engine не нужен. Но CLI Prisma перед `prisma generate` и `prisma migrate` всё равно скачивает **schema engine** с `binaries.prisma.sh` под платформу сервера (например `debian-openssl-3.0.x`). Если доступа к этому адресу нет, бинарник нужно положить на сервер вручную.
 
-1. Узнайте версию OpenSSL на сервере: `openssl version`. Для `3.x` нужен target `debian-openssl-3.0.x`, для `1.1.x` — `debian-openssl-1.1.x`.
+1. Определите target. Проще всего взять `linux-static-x64`: это статическая сборка, которой не нужен системный OpenSSL, и она подходит для любого x64 Linux, включая старые CentOS/RHEL с OpenSSL 1.0. Если нужен вариант под конкретный OpenSSL, посмотрите `openssl version`: для `3.x` — `debian-openssl-3.0.x`, для `1.1.x` — `debian-openssl-1.1.x` (или `rhel-openssl-1.1.x`), для `1.0.x` — `rhel-openssl-1.0.x`.
 
 2. Скачайте бинарник на любой машине с интернетом. Хэш в ссылке соответствует Prisma `6.19.3`; после обновления `prisma` его нужно взять заново: `node -p "require('@prisma/engines-version').enginesVersion"`.
 
    Linux/macOS:
 
    ```bash
-   curl -L -o schema-engine.gz https://binaries.prisma.sh/all_commits/c2990dca591cba766e3b7ef5d9e8a84796e47ab7/debian-openssl-3.0.x/schema-engine.gz
+   curl -L -o schema-engine.gz https://binaries.prisma.sh/all_commits/c2990dca591cba766e3b7ef5d9e8a84796e47ab7/linux-static-x64/schema-engine.gz
    ```
 
    Windows (PowerShell, именно `curl.exe`):
 
    ```powershell
-   curl.exe -L -o schema-engine.gz https://binaries.prisma.sh/all_commits/c2990dca591cba766e3b7ef5d9e8a84796e47ab7/debian-openssl-3.0.x/schema-engine.gz
+   curl.exe -L -o schema-engine.gz https://binaries.prisma.sh/all_commits/c2990dca591cba766e3b7ef5d9e8a84796e47ab7/linux-static-x64/schema-engine.gz
    ```
 
 3. Скопируйте файл на сервер и распакуйте:
@@ -278,7 +280,7 @@ Prisma Client работает через драйвер-адаптер `@prisma
    ./schema-engine --version
    ```
 
-   Ошибка про `libssl` при запуске означает, что не совпала версия OpenSSL — скачайте другой target.
+   Ошибка про `libssl` при запуске означает, что не совпала версия OpenSSL — возьмите `linux-static-x64`.
 
 4. Задайте переменную в окружении, где выполняются `yarn install`, `yarn build` и `yarn prisma:migrate:deploy` (shell, systemd, Docker):
 
@@ -287,6 +289,27 @@ Prisma Client работает через драйвер-адаптер `@prisma
    ```
 
 С этой переменной `prisma generate` и `prisma migrate deploy` ничего не скачивают. При `yarn install` пакет `@prisma/engines` всё ещё пытается загрузить бинарники в `postinstall`, но ошибка там подавляется и установку не прерывает.
+
+### Проверка и типичные ошибки
+
+```bash
+echo $PRISMA_SCHEMA_ENGINE_BINARY                            # путь к бинарнику, вывод не должен быть пустым
+"$PRISMA_SCHEMA_ENGINE_BINARY" --version                     # schema-engine-cli <хэш>
+node -p "require('@prisma/engines-version').enginesVersion"  # хэш должен совпадать
+grep engineType prisma/schema.prisma                         # engineType = "client"
+```
+
+- **`Downloading Prisma engines for Node-API ...`** — CLI скачивает query engine, значит не видит `engineType = "client"`. Обновите код на сервере (`git pull`), затем `yarn install` и `yarn prisma:generate`.
+- **`Downloading Prisma engines for <target>`** без «Node-API» — CLI не видит `PRISMA_SCHEMA_ENGINE_BINARY`. Задайте переменную в текущей сессии; после новой SSH-сессии она пропадает, поэтому лучше прописать её в `~/.bashrc`.
+- **`export: ... недопустимый идентификатор`** — при `export` перед именем переменной не ставится `$`.
+- **Ошибка про `libssl` при `--version`** — бинарник собран под другую версию OpenSSL, возьмите `linux-static-x64`.
+- **`WebAssembly.Module(): invalid value type 'externref'`** — слишком старая Node.js. Нужна Node 20+ (Prisma 6 требует минимум 18.18, NestJS 11 — 20).
+
+Чтобы увидеть, что именно CLI пытается скачать:
+
+```bash
+DEBUG="prisma:*" yarn prisma generate 2>&1 | grep -i "binaries to download"
+```
 
 ## Что будет дальше
 
