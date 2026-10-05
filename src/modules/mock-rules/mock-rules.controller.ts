@@ -37,7 +37,11 @@ import {
   JwtAuthGuard,
   type JwtPayload,
 } from '../../common/guards/jwt-auth.guard';
-import type { MockResponseUpload } from '../../common/utils/mock-response-storage';
+import {
+  normalizeMockResponseName,
+  resolveMockResponseMimeType,
+  type MockResponseUpload,
+} from '../../common/utils/mock-response-storage';
 import { CopyMockRuleDto } from './dto/copy-mock-rule.dto';
 import { CreateMockRuleDto } from './dto/create-mock-rule.dto';
 import { ListMockRulesQueryDto } from './dto/list-mock-rules-query.dto';
@@ -49,7 +53,11 @@ import { MockRulesService } from './mock-rules.service';
 @ApiTags('mock-rules')
 @ApiCookieAuth()
 @UseGuards(JwtAuthGuard)
-@ApiExtraModels(CreateMockRuleDto, UpdateMockRuleDto, PaginatedMockRulesResponseDto)
+@ApiExtraModels(
+  CreateMockRuleDto,
+  UpdateMockRuleDto,
+  PaginatedMockRulesResponseDto,
+)
 @Controller('mock-servers/:mockServerId/rules')
 export class MockRulesController {
   constructor(private readonly mockRulesService: MockRulesService) {}
@@ -257,10 +265,15 @@ export class MockRulesController {
           if (part.fieldname === 'file') {
             const buffer = await part.toBuffer();
             if (buffer.byteLength > 0) {
+              const originalName = part.filename || 'response';
+              const mimetype = resolveMockResponseMimeType(
+                part.mimetype,
+                originalName,
+              );
               file = {
                 buffer,
-                mimetype: part.mimetype,
-                originalName: part.filename || 'response.bin',
+                mimetype,
+                originalName: normalizeMockResponseName(originalName, mimetype),
               };
             }
           } else {

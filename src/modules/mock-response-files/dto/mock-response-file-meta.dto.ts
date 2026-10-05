@@ -7,7 +7,10 @@ export class MockResponseFileMetaDto {
   @ApiProperty({ example: 'products.json' })
   originalName!: string;
 
-  @ApiProperty({ example: 'application/json' })
+  @ApiProperty({
+    example: 'application/json',
+    enum: ['application/json', 'application/pdf'],
+  })
   mimeType!: string;
 
   @ApiProperty({ example: 1024 })
@@ -15,4 +18,7 @@ export class MockResponseFileMetaDto {
 
   @ApiProperty({ example: '2026-09-10T12:00:00.000Z' })
   createdAt!: Date;
+
+  @ApiProperty({ example: '2026-09-10T12:00:00.000Z' })
+  updatedAt!: Date;
 }

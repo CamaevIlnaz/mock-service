@@ -770,6 +770,7 @@ export class MockRulesService {
       mimeType: file.mimeType,
       sizeBytes: file.sizeBytes,
       createdAt: file.createdAt,
+      updatedAt: file.updatedAt,
     };
   }
 }
