@@ -9,7 +9,8 @@
   "scripts": {
     "build": "prisma generate && nest build",
     "postinstall": "prisma generate",
-    "build:web": "cd ../web-mock-service && VITE_API_BASE_URL= yarn vite build --outDir ../mock-service/public --emptyOutDir",
+    "build:web": "cd ../web-mock-service && cross-env VITE_API_BASE_URL= yarn vite build --outDir ../mock-service/public --emptyOutDir",
+    "build:web:unix": "cd ../web-mock-service && VITE_API_BASE_URL= yarn vite build --outDir ../mock-service/public --emptyOutDir",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"prisma/**/*.prisma\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -60,6 +61,7 @@
     "@types/node": "^24.0.0",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.0.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
